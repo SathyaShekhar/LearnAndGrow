@@ -1,0 +1,285 @@
+﻿@model ERA.Web.Models.EmployeeViewModel
+
+<head>
+    <script src="~/Scripts/lib/webviewer.min.js"></script>
+    <script src="~/Scripts/FileSaver.js"></script>
+
+
+    <script src="~/Scripts/ERA.js"></script>
+
+    @using Kendo.Mvc.UI
+    @Scripts.Render("~/bundles/kendoscripts")
+    @Scripts.Render("~/bundles/bootstrap")
+
+
+
+    <script src="@Url.Content("~/Scripts/kendo/2020.2.617/jszip.min.js")"></script>
+    <script src="@Url.Content("~/Scripts/bootstrap.min.js")"></script>
+
+    <style>
+        html {
+            font-size: 14px;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+    </style>
+    <title></title>
+
+    @*<script src="https://kendo.cdn.telerik.com/2017.2.504/js/jquery.min.js"></script>*@
+    <script src="https://kendo.cdn.telerik.com/2016.2.714/js/kendo.all.min.js"></script>
+
+
+    <link rel="stylesheet" href="https://kendo.cdn.telerik.com/2017.1.118/styles/kendo.common.min.css">
+    <link rel="stylesheet" href="https://kendo.cdn.telerik.com/2017.1.118/styles/kendo.rtl.min.css">
+    <link rel="stylesheet" href="https://kendo.cdn.telerik.com/2017.3.913/styles/kendo.silver.min.css" />
+    <link rel="stylesheet" href="https://kendo.cdn.telerik.com/2017.1.118/styles/kendo.mobile.all.min.css">
+
+    @*<script src="https://code.jquery.com/jquery-1.12.3.min.js"></script>*@
+    <script src="https://kendo.cdn.telerik.com/2017.1.118/js/kendo.all.min.js"></script>
+    <link rel="stylesheet" href="https://kendo.cdn.telerik.com/2017.1.118/styles/kendo.default.min.css">
+    @*<script src="https://kendo.cdn.telerik.com/2017.1.118/js/angular.min.js"></script>*@
+    <script src="https://kendo.cdn.telerik.com/2017.1.118/js/jszip.min.js"></script>
+</head>
+
+
+<script>
+
+    var addroleID = 0;
+    var addlocationID = 0;
+    var isValidEmail = false;
+    var isValidName = false;
+    var isValidRole = false;
+    var isValidLocation = false;
+    var isValidationComplete = true;
+
+    function ValidateEmail(mail) {
+        if (/^\w+([\.-]?\w+)*@@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(mail)) {
+            return (true)
+        }
+        //alert("Please enter a valid email address!")
+        return (false)
+    }
+
+    function Add_Click(e) {
+
+        var empName = $("#txtname").val();
+        var empEmail = $("#txtemail").val();;
+        var validationMsg;
+        var validationLabel = document.getElementById('lblMessage');
+
+        if (empName.trim() === "") {
+            validationMsg = 'Please provide a name';
+            isValidationComplete = false;
+            isValidEmail = false;
+        }
+        else {
+            isValidationComplete = true;
+            isValidName = true;
+        }
+
+        if (empEmail.trim() !== "" && isValidationComplete) {
+            isValidationComplete = ValidateEmail(empEmail);
+
+            if (isValidationComplete)
+                validationMsg = '';
+            else
+                validationMsg = "Please enter a valid email address!";
+
+            isValidEmail = isValidationComplete;
+        }
+        else {
+            if (isValidName && empEmail.trim() === "") {
+                validationMsg = 'Please provide an email';
+            }
+            isValidationComplete = false;
+            isValidEmail = false;
+        }
+
+        if (addroleID == 0 && isValidationComplete) {
+            validationMsg = 'Please select a role for the Employee';
+            isValidationComplete = false;
+            isValidRole = false;
+        }
+        else {
+            if (addroleID > 0 && isValidName && isValidEmail) {
+                isValidationComplete = true;
+                validationMsg = '';
+                isValidRole = true;
+            }
+            else
+                isValidRole = false;
+        }
+
+        if (addlocationID == 0 && isValidationComplete) {
+            validationMsg = 'Please select a location for the Employee';
+            isValidationComplete = false;
+        }
+        else {
+            if (addlocationID > 0 && isValidRole && isValidName && isValidEmail) {
+                isValidationComplete = true;
+                validationMsg = '';
+                isValidLocation = true;
+            }
+            else
+                isValidLocation = false;
+        }
+
+        if (isValidationComplete) {
+            validationMsg = '';
+            validationLabel.value = validationMsg;
+            $(".validationmsg").css("visibility", "hidden");
+            //validationLabel.style.visibility = "hidden";
+            //alert('Validation completed');
+
+            var empDetails = {
+                "EmployeeName": empName,
+                "Email": empEmail,
+                "LocationID": addlocationID,
+                "RoleID": addroleID
+            };
+
+            $.post('/EmployeeDetails/EditingInline_Create', { addEmployee: empDetails }, function (result) {
+                if (result != null && (result.Data[0] >= 0)) {
+                    alert("Employee added successfully!!!");
+                }
+                else {
+                    var message = "Couldnt add new Employee " + empName;
+                    alert(message);
+                }
+                $("#winAddEmpDetails").data("kendoWindow").close();
+                $("#gridEmployees").data("kendoGrid").dataSource.read();
+            });
+        }
+        else {
+            $(".validationmsg").css("visibility", "visible");
+            validationLabel.value = validationMsg;
+            validationLabel.style.visibility = "visible";
+            //$('#lblMessage').toggle();
+        }
+
+    }
+
+    function Cancel_Click(e) {
+        $("#winAddEmpDetails").data("kendoWindow").close();
+        $("#gridEmployees").data("kendoGrid").dataSource.read();
+    }
+
+    function Add_RoleChanged() {
+        addroleID = $("#cmbAddEmployeeRoles").data("kendoComboBox").value();
+        //alert(addroleID);
+    }
+    function Add_LocationChanged() {
+        addlocationID = $("#cmbAddEmployeeLocation").data("kendoComboBox").value();
+        //alert(addlocationID);
+    }
+
+
+
+
+    //# sourceURL=AddEmployee.js
+</script>
+
+
+<div id="mainAddEmployeeContainer" class="controlSpacing">
+
+    <form>
+        <div class="controlSpacing">
+            Employee Name:
+            <input type="text" id="txtname" name="name" placeholder="Enter the name" class="leftMargin" required>
+        </div>
+        <div class="controlSpacing">
+            Employee Email:
+            <input type="email" id="txtemail" name="email" data-email-msg="Invalid email!" placeholder="e.g. myname@example.net" class="k-textbox leftMargin required">
+        </div>
+    </form>
+    <div class="controlSpacing">
+        Employee Role:
+        @(Html.Kendo().ComboBox()
+                                                                            .Name("cmbAddEmployeeRoles")
+                                                                            .HtmlAttributes(new { style = "width:250px;",  @class ="leftMargin1" })
+                                                                            .Placeholder("Select Role...")
+                                                                            .DataTextField("RoleDescription")
+                                                                            .DataValueField("RoleID")
+                                                                            .Filter(FilterType.Contains)
+                                                                            .AutoBind(true)
+                                                                            .Enable(true)
+                                                                            .Suggest(true)
+                                                                            .IgnoreCase(true)
+                                                                            .SelectedIndex(0)
+                                                                            .DataSource(source =>
+                                                                            {
+                                                                                source.Read(read =>
+                                                                                {
+                                                                                    read.Action("GetAllRoles", "EmployeeDetails");
+                                                                                });
+                                                                            })
+                                                                            .Events(e => e.Change("Add_RoleChanged"))
+            )
+    </div>
+
+    <div class="controlSpacing">
+        Employee Location:
+        @(Html.Kendo().ComboBox()
+                                                                            .Name("cmbAddEmployeeLocation")
+                                                                            .HtmlAttributes(new { style = "width:250px;", @class = "leftMargin2" })
+                                                                            .Placeholder("Select Location...")
+                                                                            .DataTextField("LocationDescription")
+                                                                            .DataValueField("LocationID")
+                                                                            .Filter(FilterType.Contains)
+                                                                            .AutoBind(true)
+                                                                            .Enable(true)
+                                                                            .Suggest(true)
+                                                                            .IgnoreCase(true)
+                                                                            .SelectedIndex(0)
+                                                                            .DataSource(source =>
+                                                                            {
+                                                                                source.Read(read =>
+                                                                                {
+                                                                                    read.Action("GetAllLocations", "EmployeeDetails");
+                                                                                });
+                                                                            })
+                                                                            .Events(e => e.Change("Add_LocationChanged"))
+            )
+    </div>
+
+    <div class="controlSpacing">
+        <div id="uneditableMsg" class="validationmsg control-btm-Spacing">
+            <input type="text" readonly id="lblMessage" size="250" style="border:none" />
+        </div>
+        @(Html.Kendo().Button().Name("btnAdd").Content("Add Employee").Events(e => e.Click("Add_Click")))
+        @(Html.Kendo().Button().Name("btnCancel").Content("Cancel").Events(e => e.Click("Cancel_Click")))
+    </div>
+</div>
+
+<style>
+    .validationmsg {
+        color: red;
+        margin: 5px;
+        outline: none;
+        font-size: 14px;
+        border-color: transparent;
+    }
+    input {
+        width: 250px;
+    }
+
+    .leftMargin {
+        margin-left: 30px;
+    }
+
+    .leftMargin1 {
+        margin-left: 38px;
+    }
+
+    .leftMargin2 {
+        margin-left: 16px;
+    }
+
+    .control-btm-Spacing {
+        margin: 5px;
+    }
+
+    .controlSpacing {
+        margin: 10px;
+    }
+</style>
+

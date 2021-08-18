@@ -1,0 +1,11 @@
+C:\360Project\EmployeeRewardsAdministration\ERA.Data\bin\Debug\ERA.Data.dll
+C:\360Project\EmployeeRewardsAdministration\ERA.Data\bin\Debug\ERA.Data.pdb
+C:\360Project\EmployeeRewardsAdministration\ERA.Data\obj\Debug\ERA.Data.csproj.CoreCompileInputs.cache
+C:\360Project\EmployeeRewardsAdministration\ERA.Data\obj\Debug\ERA.Data.dll
+C:\360Project\EmployeeRewardsAdministration\ERA.Data\obj\Debug\ERA.Data.pdb
+C:\360Project\EmployeeRewardsAdministration\ERA.Data\bin\Debug\ERA.Data.dll.config
+C:\360Project\EmployeeRewardsAdministration\ERA.Data\bin\Debug\EntityFramework.dll
+C:\360Project\EmployeeRewardsAdministration\ERA.Data\bin\Debug\EntityFramework.SqlServer.dll
+C:\360Project\EmployeeRewardsAdministration\ERA.Data\bin\Debug\EntityFramework.xml
+C:\360Project\EmployeeRewardsAdministration\ERA.Data\bin\Debug\EntityFramework.SqlServer.xml
+C:\360Project\EmployeeRewardsAdministration\ERA.Data\obj\Debug\ERA.Data.csproj.CopyComplete

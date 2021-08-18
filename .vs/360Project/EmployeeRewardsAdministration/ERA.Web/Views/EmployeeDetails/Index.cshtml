@@ -1,0 +1,282 @@
+﻿@{
+    var apiUrl = System.Configuration.ConfigurationManager.AppSettings.Get("APIURL");
+
+    ViewBag.Title = "Index";
+}
+
+<head>
+    <script src="~/Scripts/lib/webviewer.min.js"></script>
+    <script src="~/Scripts/FileSaver.js"></script>
+
+
+    <script src="~/Scripts/ERA.js"></script>
+
+    @using Kendo.Mvc.UI
+    @Scripts.Render("~/bundles/kendoscripts")
+    @Scripts.Render("~/bundles/bootstrap")
+
+
+
+    <script src="@Url.Content("~/Scripts/kendo/2020.2.617/jszip.min.js")"></script>
+    <script src="@Url.Content("~/Scripts/bootstrap.min.js")"></script>
+
+    <style>
+        html {
+            font-size: 14px;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+    </style>
+    <title></title>
+
+    @*<script src="https://kendo.cdn.telerik.com/2017.2.504/js/jquery.min.js"></script>*@
+    <script src="https://kendo.cdn.telerik.com/2016.2.714/js/kendo.all.min.js"></script>
+
+
+    <link rel="stylesheet" href="https://kendo.cdn.telerik.com/2017.1.118/styles/kendo.common.min.css">
+    <link rel="stylesheet" href="https://kendo.cdn.telerik.com/2017.1.118/styles/kendo.rtl.min.css">
+    <link rel="stylesheet" href="https://kendo.cdn.telerik.com/2017.3.913/styles/kendo.silver.min.css" />
+    <link rel="stylesheet" href="https://kendo.cdn.telerik.com/2017.1.118/styles/kendo.mobile.all.min.css">
+
+    @*<script src="https://code.jquery.com/jquery-1.12.3.min.js"></script>*@
+    <script src="https://kendo.cdn.telerik.com/2017.1.118/js/kendo.all.min.js"></script>
+    <link rel="stylesheet" href="https://kendo.cdn.telerik.com/2017.1.118/styles/kendo.default.min.css">
+    @*<script src="https://kendo.cdn.telerik.com/2017.1.118/js/angular.min.js"></script>*@
+    <script src="https://kendo.cdn.telerik.com/2017.1.118/js/jszip.min.js"></script>
+</head>
+
+@*<div>
+
+        <ul>
+
+            @foreach (var item in Model)
+            {
+                <li>@item.EmployeeID , @item.EmployeeName , @item.Location , @item.Email</li>
+
+            }
+        </ul>
+
+    </div>*@
+
+
+
+<div>
+
+    <div>
+        <div class="control-btm-Spacing">
+            Employee Role:
+            @(Html.Kendo().ComboBox()
+                                                                            .Name("cmbEmpRoles")
+                                                                            .HtmlAttributes(new { style = "width:205px;" })
+                                                                            .Placeholder("Select Role...")
+                                                                            .DataTextField("RoleDescription")
+                                                                            .DataValueField("RoleID")
+                                                                            .Filter(FilterType.Contains)
+                                                                            .AutoBind(true)
+                                                                            .Enable(true)
+                                                                            .Suggest(true)
+                                                                            .IgnoreCase(true)
+                                                                            .SelectedIndex(0)
+                                                                            .DataSource(source =>
+                                                                            {
+                                                                                source.Read(read =>
+                                                                                {
+                                                                                    read.Action("GetAllRoles", "EmployeeDetails");
+                                                                                });
+                                                                            })
+                                                                            .Events(e => e.Change("RoleChanged"))
+            )
+            Employee Location:
+            @(Html.Kendo().ComboBox()
+                                                                            .Name("cmbEmplocation")
+                                                                            .HtmlAttributes(new { style = "width:205px;" })
+                                                                            .Placeholder("Select Location...")
+                                                                            .DataTextField("LocationDescription")
+                                                                            .DataValueField("LocationID")
+                                                                            .Filter(FilterType.Contains)
+                                                                            .AutoBind(true)
+                                                                            .Enable(true)
+                                                                            .Suggest(true)
+                                                                            .IgnoreCase(true)
+                                                                            .SelectedIndex(0)
+                                                                            .DataSource(source =>
+                                                                            {
+                                                                                source.Read(read =>
+                                                                                {
+                                                                                    read.Action("GetAllLocations", "EmployeeDetails");
+                                                                                });
+                                                                            })
+                                                                            .Events(e => e.Change("LocationChanged"))
+            )
+            @(Html.Kendo().Button().Name("btnSearch").Content("Search/Refresh").Events(e => e.Click("Search_Click")))
+            @(Html.Kendo().Button().Name("btnReset").Content("Reset").Events(e => e.Click("Reset_Click")))
+        </div>
+
+    </div>
+
+    <div>
+        <div id="employeegrid" class="controlSpacing">
+            @(Html.Kendo().Grid<ERA.Web.Models.EmployeeViewModel>()
+                                                                                                .Name("gridEmployees")
+                                                                                                .AutoBind(true)
+                                                                                                .Columns(columns =>
+                                                                                                {
+                                                                                                    columns.Bound(c => c.EmployeeID)
+                                                                                                                        .Title("ID")
+                                                                                                                        .Width(125);
+                                                                                                    columns.Bound(c => c.EmployeeName)
+                                                                                                                    .Title("Name")
+                                                                                                                    .Width(100);
+                                                                                                    columns.Bound(c => c.Email)
+                                                                                                                        .Title("Email")
+                                                                                                                        .Width(150);
+                                                                                                    columns.Bound(c => c.EmployeeRole)
+                                                                                                                        .Title("Title")
+                                                                                                                        .Width(125);
+                                                                                                    columns.Bound(c => c.RewardPoints)
+                                                                                                                        .Title("Point Earned")
+                                                                                                                        .HtmlAttributes( new {type = "number", required = true, pattern = "[0-9]", min=100, max=1000000, step=100 }).Width(150);
+                                                                                                    columns.Bound(c => c.Location)
+                                                                                                                        .Title("Location")
+                                                                                                                        .Width(150);
+                                                                                                    columns.Command(command => { command.Edit().Text("reward points").HtmlAttributes(new { @id = "UpdateRecord", @class="myValidator" } );
+                                                                                                        command.Destroy().Text("remove user"); }).Width(250);
+                                                                                                })
+                                                                                                .Resizable(resize => resize.Columns(true))
+                                                                                                .HtmlAttributes(new { style = "height:500px;width:1200px" })
+                                                                                                .Editable(editable => editable.Mode(GridEditMode.InLine).ConfirmDelete("Are you sure to delete this employee?").DisplayDeleteConfirmation("Are you sure to delete this employee?"))
+                                                                                                .Pageable()
+                                                                                                .Pageable(pageable => pageable
+                                                                                                    .Input(true)
+                                                                                                    .PageSizes(true)
+                                                                                                    .PageSizes(new int[] { 5, 10, 20, 50, 75, 100 })
+                                                                                                    .Numeric(false)
+                                                                                                )
+                                                                                                .ToolBar(toolbar => toolbar.Custom().Text("Add new employee"))
+                                                                                                .Navigatable()
+                                                                                                .Reorderable(reorder => reorder.Columns(true))
+                                                                                                .Sortable()
+                                                                                                .Scrollable(scroll => scroll.Virtual(true))
+                                                                                                    .Selectable(selectable =>
+                                                                                                    {
+                                                                                                        selectable.Mode(GridSelectionMode.Single);
+                                                                                                        selectable.Type(GridSelectionType.Row);
+                                                                                                    })
+                                                                                                .NoRecords("There are currently no data...")
+                                                                                                .DataSource(dataSource => dataSource
+                                                                                                        .WebApi()
+                                                                                                        .Model(model =>
+                                                                                                        {
+                                                                                                            model.Id(p => p.EmployeeID);
+                                                                                                            model.Field(p => p.EmployeeID).Editable(false);
+                                                                                                            model.Field(p => p.Email).Editable(false);
+                                                                                                            model.Field(p => p.EmployeeName).Editable(false);
+                                                                                                            model.Field(p => p.Location).Editable(false);
+                                                                                                            model.Field(p => p.EmployeeRole).Editable(false);
+                                                                                                        })
+                                                                                                        .ServerOperation(true)
+                                                                                                        //.Sort(s => s.Add("LastName"))
+                                                                                                        .PageSize(25)
+                                                                                                        .Events(events => events.Error("onError"))
+                                                                                                        .Read(read => read
+                                                                                                        .Url(string.Format("{0}/EmployeeDetails/GetAllEmployeeDetails", apiUrl)).Data("filterEmployees")
+                                                                                                        .Type(HttpVerbs.Get)
+                                                                                                        )
+                                                                                                        .Create(update => update.Action("CreateEmployee", "EmployeeDetails"))
+                                                                                                        .Update(update => update.Action("UpdateEmployee", "EmployeeDetails").Type(HttpVerbs.Post))
+                                                                                                        .Destroy(delete => delete.Action("DeleteEmployee", "EmployeeDetails").Type(HttpVerbs.Post))
+            ))
+        </div>
+    </div>
+
+</div>
+
+<div id="divAlertDetails">
+    @(Html.Kendo().Window()
+                               .Name("winAddEmpDetails")
+                               .Title("Add new Employee")
+                               .Scrollable(true)
+                               .Modal(true)
+                               .Visible(false)
+                               .Actions(actions => actions.Close())
+                               .Resizable(r=>r.Enabled(false))
+                               .Width(500)
+                               .Height(400)
+                               .Events(e => e
+                                        //.Open("window_open")
+                                        .Close("window_close"))
+    )
+</div>
+
+<style>
+    .control-btm-Spacing {
+        margin: 5px;
+    }
+
+    .controlSpacing {
+        margin: 10px;
+    }
+</style>
+
+<script>
+    var roleID = 0;
+    var locationID = 0;
+
+    $(function () {
+        $("#gridEmployees").find(".k-grid-toolbar").on("click",  function (e) {
+            e.preventDefault();
+            $("#winAddEmpDetails").kendoWindow({
+                     title: "Add new employee",
+                     content: '@Url.Action("AddEmployee", "EmployeeDetails")' ,
+                     modal: true
+                 })
+
+            $("#winAddEmpDetails").data("kendoWindow").open().center();           
+        });
+    });
+
+    function RoleChanged() {
+        roleID = $("#cmbEmpRoles").data("kendoComboBox").value();
+        $("#gridEmployees").data("kendoGrid").dataSource.read();
+    }
+    function LocationChanged() {
+        locationID = $("#cmbEmplocation").data("kendoComboBox").value();
+        $("#gridEmployees").data("kendoGrid").dataSource.read();
+    }
+
+
+    function Search_Click(e) {
+        $("#gridEmployees").data("kendoGrid").dataSource.read();
+    }
+
+    function onError(e, status) {
+        alert("A server error has occurred!");
+    }
+    function Reset_Click(e) {
+        roleID = 0;
+        locationID = 0;
+        $("#cmbEmpRoles").data("kendoComboBox").value("All");
+        $("#cmbEmplocation").data("kendoComboBox").value("All");
+        $("#gridEmployees").data("kendoGrid").dataSource.read();
+    }
+
+    $('#UpdateRecord').click(function () {
+        alert("inside validator");
+        var validator = $(".myValidator").kendoValidator({
+            messages: {
+                min: alert("Number must be greater than 100"),
+                max: alert("Number must be less than 1000000")
+            }
+        }).data("kendoValidator");
+        validator.validate();
+    })
+
+
+    function filterEmployees() {
+        return {
+            selectedRoleID: roleID,
+            selectedlocation: locationID
+        };
+    }
+
+    //# sourceURL=EmployeeDetails.js
+</script>
